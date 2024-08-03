@@ -12,9 +12,11 @@ const player = "p"
 const brick = "b"
 const platform = "l"
 const box = "a"
+let is_jumping = false
 
 setLegend(
   [player, bitmap`
+................
 ................
 ................
 .......000......
@@ -29,8 +31,7 @@ setLegend(
 .....06660......
 ......000.......
 ......0.0.......
-.....00.00......
-................`],
+.....00.00......`],
   [brick, bitmap`
 0000000000000000
 0CCC0CCC0CCC0CCC
@@ -91,9 +92,9 @@ const levels = [
   map`
 ..........
 ..........
-..........
 ........ll
-..........
+.......l..
+......l...
 ....ll....
 .p.....a..
 bbbbbbbbbb`
@@ -106,11 +107,29 @@ function wait(time) {
 }
 
 
+async function gravity() {
+  if (!is_jumping) {
+    for (let i = 0; i < 5; i++) {
+      var tile_under_player = getTile(getFirst(player).x, getFirst(player).y + 1)
+      if (tile_under_player.length == 0) {
+        await wait(50)
+        getFirst(player).y += 1
+      }
+    }
+  }
+}
+
 async function jump() {
-  getFirst(player).y -= 1
-  await wait(500);
-  getFirst(player).x += 1
-  await wait(500);
+  if (!is_jumping) {
+
+    is_jumping = true
+    getFirst(player).y -= 1
+    await wait(50)
+    getFirst(player).y -= 1
+    await wait(200)
+    is_jumping = false
+    gravity()
+  }
 }
 
 setPushables({
@@ -129,11 +148,13 @@ onInput("l", () => {
 
 
 
-
-
 afterInput(() => {
-  var tile_under_player = getTile(getFirst(player).x, getFirst(player).y + 1)
-  if (tile_under_player.length == 0) {
-    getFirst(player).y += 1
+  if (!is_jumping) {
+    for (let i = 0; i < 5; i++) {
+      var tile_under_player = getTile(getFirst(player).x, getFirst(player).y + 1)
+      if (tile_under_player.length == 0) {
+        getFirst(player).y += 1
+      }
+    }
   }
 })
